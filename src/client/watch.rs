@@ -4,14 +4,14 @@ use tokio::task::JoinHandle;
 use watchexec::Watchexec;
 use watchexec_signals::Signal;
 
-use crate::state::{ClientChannel, State};
+use crate::client::{ClientChannel, ClientState};
 
 pub struct ClientWatcher(JoinHandle<()>);
 
 const IGNORED_PATHS: [&str; 1] = ["dist"];
 
 impl ClientWatcher {
-    pub fn new(watch_dir: &str, state: State) -> Self {
+    pub fn new(watch_dir: &str, state: ClientState) -> Self {
         let watch_dir = PathBuf::from_str(watch_dir)
             .expect("Invalid watch_dir path")
             .canonicalize()

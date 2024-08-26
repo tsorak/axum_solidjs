@@ -1,14 +1,13 @@
 use anyhow::bail;
 use tokio::{process, task::JoinHandle};
 
-use crate::state::{ClientChannel, ClientChannelMessage, State};
+use crate::client::{ClientChannel, ClientChannelMessage, ClientState};
 
 use super::Client;
 
 pub struct Builder {
     package_manager: String,
-    client_channel: Option<ClientChannel>,
-    build_loop_handle: Option<JoinHandle<()>>,
+    _build_loop_handle: Option<JoinHandle<()>>,
 }
 
 impl Client {
@@ -23,24 +22,19 @@ impl Client {
 }
 
 impl Builder {
-    pub fn new(state: State) -> Self {
-        Self {
-            package_manager: "".into(),
-            client_channel: Some(state.client_channel.clone()),
-            build_loop_handle: None,
-        }
-    }
-
-    pub async fn init(&mut self) -> &mut Self {
-        let pm = get_package_manager()
+    pub async fn new(state: ClientState) -> Self {
+        let package_manager = get_package_manager()
             .await
             .expect("No JS package manager found");
 
-        self.package_manager = pm;
+        let ch = state.client_channel.clone();
 
-        self.build_loop_handle = Some(self.start_build_event_loop().await);
+        let handle = Self::start_build_event_loop(ch, package_manager.clone()).await;
 
-        self
+        Self {
+            package_manager,
+            _build_loop_handle: Some(handle),
+        }
     }
 
     pub async fn build_client(&self) -> &Self {
@@ -67,14 +61,7 @@ impl Builder {
         Ok(())
     }
 
-    async fn start_build_event_loop(&mut self) -> JoinHandle<()> {
-        // at the moment only this method uses the client_channel. Expect it to only be used once.
-        let mut ch = self
-            .client_channel
-            .take()
-            .expect("Only take client_channel once");
-        let pm = self.package_manager.clone();
-
+    async fn start_build_event_loop(mut ch: ClientChannel, pm: String) -> JoinHandle<()> {
         tokio::spawn(async move {
             loop {
                 if let Some(ClientChannelMessage::Build) = ch.recv().await {

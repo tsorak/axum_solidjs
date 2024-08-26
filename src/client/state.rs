@@ -2,14 +2,12 @@ use tokio::sync::broadcast::{channel, Receiver, Sender};
 
 #[derive(Debug, Clone)]
 pub struct State {
-    pub motd: String,
     pub client_channel: ClientChannel,
 }
 
 impl State {
-    pub fn new(motd: &str) -> Self {
+    pub(super) fn new() -> Self {
         Self {
-            motd: motd.to_string(),
             client_channel: ClientChannel::new(),
         }
     }

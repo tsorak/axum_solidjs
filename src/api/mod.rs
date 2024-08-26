@@ -1,12 +1,12 @@
 use axum::{routing::get, Router};
 
-mod motd;
+use crate::client::ClientState;
+
 mod ws;
 
-pub fn api_router() -> Router<crate::State> {
+pub fn api_router() -> Router<ClientState> {
     Router::new()
         .route("/", get(status::status))
-        .route("/motd", get(motd::motd))
         .route("/ws", get(ws::ws))
 }
 

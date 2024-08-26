@@ -8,15 +8,15 @@ use axum::{
     response::Response,
 };
 
-use crate::state::ClientChannelMessage;
+use crate::client::{ClientChannelMessage, ClientState};
 
-pub async fn ws(ws_upgrade: WebSocketUpgrade, state: State<crate::State>) -> Response {
+pub async fn ws(ws_upgrade: WebSocketUpgrade, state: State<ClientState>) -> Response {
     ws_upgrade.on_upgrade(|ws| async {
         handle_socket_connection(ws, state).await;
     })
 }
 
-async fn handle_socket_connection(mut socket: WebSocket, mut state: State<crate::State>) {
+async fn handle_socket_connection(mut socket: WebSocket, mut state: State<ClientState>) {
     loop {
         tokio::select! {
             // _ = tokio::time::sleep(Duration::from_secs(5)) => {
@@ -53,7 +53,7 @@ async fn handle_socket_connection(mut socket: WebSocket, mut state: State<crate:
 
 async fn handle_text_message(
     _socket: &mut WebSocket,
-    state: &mut State<crate::State>,
+    state: &mut State<ClientState>,
     data: String,
 ) {
     if let "rebuild" = data.as_str() {
