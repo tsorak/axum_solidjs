@@ -3,6 +3,10 @@ name = "solid_biljard"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "lib"
+path = "./src/lib.rs"
+
 [dependencies]
 anyhow = "1.0.86"
 axum = { version = "0.7.5", features = ["ws"] }

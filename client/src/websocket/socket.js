@@ -4,16 +4,24 @@ class ClientSocket {
   socket;
   path;
   reloadPageOnReconnect;
+  connection;
 
   constructor(p) {
     const path = socketPathFromEndpoint(p);
+
+    let didConnect;
+    this.connection = new Promise((res, _) => {
+      didConnect = res;
+    });
+
     this.path = path;
-    this.connect(path);
+    this.connect(path, didConnect);
   }
 
-  async connect(p) {
+  async connect(p, didConnect) {
     const s = await connect(p);
     console.log("[CS] Connected");
+    didConnect();
 
     const [socket, didClose] = attachHandlers(s);
 
@@ -25,13 +33,18 @@ class ClientSocket {
   async autoReconnect(didClose) {
     await didClose;
 
+    let didConnect;
+    this.connection = new Promise((res, _) => {
+      didConnect = res;
+    })
+
     console.log("[CS] Reconnecting...");
 
     if (this.reloadPageOnReconnect) {
-      await this.connect(this.path);
+      await this.connect(this.path, didConnect);
       window.location.reload();
     } else {
-      this.connect(this.path);
+      this.connect(this.path, didConnect);
     }
   }
 
@@ -42,7 +55,9 @@ class ClientSocket {
     this.reloadPageOnReconnect = b;
   }
 
-  send(data) {
+  async send(data) {
+    await this.connection;
+
     this.socket.send(data);
   }
 

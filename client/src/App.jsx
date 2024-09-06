@@ -1,4 +1,4 @@
-import { HashRouter, Route } from "@solidjs/router";
+import { Router, Route } from "@solidjs/router";
 
 import Layout from "./components/Layout.jsx";
 
@@ -17,10 +17,10 @@ export default function App() {
 
   return (
     <AppState.Provider value={state}>
-      <HashRouter root={Layout}>
+      <Router root={Layout}>
         <Route path="/" component={Home} />
         <Route path="/motd" component={Motd} />
-      </HashRouter>
+      </Router>
     </AppState.Provider>
   );
 }
